@@ -352,18 +352,6 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
-            -- 第一步：傳送到Stepladder並執行ProximityPrompt
-            local stepladder = Workspace:FindFirstChild("Stepladder")
-            if stepladder then
-                character.HumanoidRootPart.CFrame = stepladder.CFrame
-                local frame = stepladder:FindFirstChild("Frame")
-                if frame then
-                    local proximityPrompt = frame:FindFirstChild("ProximityPrompt")
-                    if proximityPrompt then
-                        fireproximityprompt(proximityPrompt)
-                    end
-                end
-            end
             
             -- 第二步：傳送到Screwdriver並執行ProximityPrompt
             local screwdriver = Workspace:FindFirstChild("Screwdriver")
@@ -406,8 +394,24 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 4. 傳送到終點
-local TeleportToEndBtn = createButton("🎯 傳送到終點", 4, EvilBrazilContent, 45)
+-- 4. 傳送到骰子 (新增的按鈕)
+local TeleportToDiceBtn = createButton("🎲 傳送到骰子(進門或電梯後點)", 4, EvilBrazilContent, 45)
+TeleportToDiceBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local cursedDice = Workspace:FindFirstChild("Cursed Dice")
+            if cursedDice then
+                character.HumanoidRootPart.CFrame = cursedDice.CFrame
+            else
+                print("找不到 Cursed Dice 物件")
+            end
+        end
+    end)
+end)
+
+-- 5. 傳送到終點
+local TeleportToEndBtn = createButton("🎯 傳送到終點", 5, EvilBrazilContent, 45)
 TeleportToEndBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
@@ -472,8 +476,8 @@ TeleportToEndBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 5. 丟炸彈時用（可開關）- 优化版本
-local BombModeBtn = createButton("💣 丟炸彈時用", 5, EvilBrazilContent, 45)
+-- 6. 丟炸彈時用（可開關）- 优化版本
+local BombModeBtn = createButton("💣 丟炸彈時用", 6, EvilBrazilContent, 45)
 local isBombModeOn = false
 local originalPlatformY = nil
 local originalPlayerY = nil
