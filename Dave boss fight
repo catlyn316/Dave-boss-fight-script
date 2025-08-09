@@ -4,6 +4,31 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local TeleportService = game:GetService("TeleportService")
 
+-- 自動Loopfb（燈光控制）
+local function autoLoopfb()
+    spawn(function()
+        while wait(0.1) do
+            pcall(function()
+                local character = LocalPlayer.Character
+                if character then
+                    local lantern = character:FindFirstChild("Lantern")
+                    if lantern then
+                        local network = lantern:FindFirstChild("Network")
+                        if network then
+                            local args = {
+                                [1] = "Fb"
+                            }
+                            network:FireServer(unpack(args))
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end
+
+-- 啟動自動Loopfb
+autoLoopfb()
 
 -- GUI 主體
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
@@ -327,6 +352,18 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
+            -- 第一步：傳送到Stepladder並執行ProximityPrompt
+            local stepladder = Workspace:FindFirstChild("Stepladder")
+            if stepladder then
+                character.HumanoidRootPart.CFrame = stepladder.CFrame
+                local frame = stepladder:FindFirstChild("Frame")
+                if frame then
+                    local proximityPrompt = frame:FindFirstChild("ProximityPrompt")
+                    if proximityPrompt then
+                        fireproximityprompt(proximityPrompt)
+                    end
+                end
+            end
             
             -- 第二步：傳送到Screwdriver並執行ProximityPrompt
             local screwdriver = Workspace:FindFirstChild("Screwdriver")
@@ -370,7 +407,7 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
 end)
 
 -- 4. 傳送到骰子 (新增的按鈕)
-local TeleportToDiceBtn = createButton("🎲 傳送到骰子(進門或電梯後點)", 4, EvilBrazilContent, 45)
+local TeleportToDiceBtn = createButton("🎲 傳送到骰子(出來電梯後點)", 4, EvilBrazilContent, 45)
 TeleportToDiceBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
@@ -451,102 +488,217 @@ TeleportToEndBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 6. 丟炸彈時用（可開關）- 优化版本
-local BombModeBtn = createButton("💣 丟炸彈時用", 6, EvilBrazilContent, 45)
-local isBombModeOn = false
-local originalPlatformY = nil
-local originalPlayerY = nil
-local platformConnection = nil
+-- 6. 自動拿/放炸彈（可開關）- 自動觸發ProximityPrompt
+local AutoBombBtn = createButton("💣 自動拿/放炸彈", 6, EvilBrazilContent, 45)
+local isAutoBombOn = false
+local autoBombConnection = nil
 
-BombModeBtn.MouseButton1Click:Connect(function()
+-- 獲取玩家攝像機
+local Camera = game.Workspace.CurrentCamera
+
+-- 自動觸發可見ProximityPrompt的函數
+local function autoTriggerProximityPrompts()
     pcall(function()
         local character = LocalPlayer.Character
-        local platform = Workspace:FindFirstChild("EndPlatform")
+        if not character or not character:FindFirstChild("HumanoidRootPart") then
+            return
+        end
         
-        if character and character:FindFirstChild("HumanoidRootPart") and platform then
-            isBombModeOn = not isBombModeOn
+        -- 遞歸查找所有ProximityPrompt
+        local function findProximityPrompts(obj)
+            local prompts = {}
             
-            if isBombModeOn then
-                -- 开启模式：向上移动20单位
-                BombModeBtn.Text = "💣 丟炸彈時用 (ON)"
-                BombModeBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
-                
-                -- 储存原始位置
-                if not originalPlatformY then
-                    originalPlatformY = platform.Position.Y
-                end
-                if not originalPlayerY then
-                    originalPlayerY = character.HumanoidRootPart.Position.Y
+            for _, child in pairs(obj:GetChildren()) do
+                if child:IsA("ProximityPrompt") then
+                    table.insert(prompts, child)
                 end
                 
-                -- 移动平台向上20单位
-                local currentPos = platform.Position
-                local newPlatformPos = Vector3.new(currentPos.X, originalPlatformY + 20, currentPos.Z)
-                platform.Position = newPlatformPos
-                
-                -- 移动玩家向上20单位
-                local currentPlayerPos = character.HumanoidRootPart.Position
-                local newPlayerPos = Vector3.new(currentPlayerPos.X, originalPlayerY + 20, currentPlayerPos.Z)
-                character.HumanoidRootPart.CFrame = CFrame.new(newPlayerPos, newPlayerPos + character.HumanoidRootPart.CFrame.LookVector)
-                
-                -- 创建连接来固定平台位置（防止其他脚本干扰）
-                platformConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                    if platform and platform.Parent then
-                        local expectedY = originalPlatformY + 20
-                        if math.abs(platform.Position.Y - expectedY) > 0.1 then
-                            platform.Position = Vector3.new(platform.Position.X, expectedY, platform.Position.Z)
-                        end
-                    end
-                end)
-                
-            else
-                -- 关闭模式：移回原位
-                BombModeBtn.Text = "💣 丟炸彈時用"
-                BombModeBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-                
-                -- 断开固定位置的连接
-                if platformConnection then
-                    platformConnection:Disconnect()
-                    platformConnection = nil
-                end
-                
-                if originalPlatformY and originalPlayerY and platform then
-                    -- 移回原始位置
-                    local originalPlatformPos = Vector3.new(platform.Position.X, originalPlatformY, platform.Position.Z)
-                    local originalPlayerPos = Vector3.new(character.HumanoidRootPart.Position.X, originalPlayerY, character.HumanoidRootPart.Position.Z)
-                    
-                    platform.Position = originalPlatformPos
-                    character.HumanoidRootPart.CFrame = CFrame.new(originalPlayerPos, originalPlayerPos + character.HumanoidRootPart.CFrame.LookVector)
+                -- 遞歸查找子物件
+                local childPrompts = findProximityPrompts(child)
+                for _, prompt in pairs(childPrompts) do
+                    table.insert(prompts, prompt)
                 end
             end
+            
+            return prompts
+        end
+        
+        -- 獲取所有ProximityPrompt
+        local allPrompts = findProximityPrompts(Workspace)
+        
+        for _, prompt in pairs(allPrompts) do
+            -- 檢查ProximityPrompt是否啟用且父物件存在
+            if prompt.Enabled and prompt.Parent then
+                local promptPart = prompt.Parent
+                
+                -- 檢查是否在範圍內
+                if promptPart:IsA("BasePart") then
+                    local distance = (character.HumanoidRootPart.Position - promptPart.Position).Magnitude
+                    
+                    -- 如果在觸發範圍內，自動觸發
+                    if distance <= prompt.MaxActivationDistance then
+                        -- 檢查是否在視角範圍內（簡單的前方檢測）
+                        local directionToPrompt = (promptPart.Position - character.HumanoidRootPart.Position).Unit
+                        local lookDirection = character.HumanoidRootPart.CFrame.LookVector
+                        local dotProduct = directionToPrompt:Dot(lookDirection)
+                        
+                        -- 如果大致在前方（角度小於90度）
+                        if dotProduct > 0 then
+                            fireproximityprompt(prompt)
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+AutoBombBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        isAutoBombOn = not isAutoBombOn
+        
+        if isAutoBombOn then
+            -- 開啟模式：開始自動觸發ProximityPrompt
+            AutoBombBtn.Text = "💣 自動拿/放炸彈 (ON)"
+            AutoBombBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
+            
+            -- 每0.1秒檢查一次
+            autoBombConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                autoTriggerProximityPrompts()
+            end)
+            
         else
-            -- 如果没有找到EndPlatform，给出提示
-            if not platform then
-                print("请先使用'传送到终点'功能创建平台")
+            -- 關閉模式
+            AutoBombBtn.Text = "💣 自動拿/放炸彈"
+            AutoBombBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+            
+            -- 斷開自動觸發連接
+            if autoBombConnection then
+                autoBombConnection:Disconnect()
+                autoBombConnection = nil
             end
         end
     end)
 end)
 
--- 当玩家重生或离开游戏时清理连接
+-- 7. 丟炸彈時用（可開關）- 固定高度5秒後移動到平台
+local BombThrowBtn = createButton("💥 丟炸彈時用", 7, EvilBrazilContent, 45)
+local isBombThrowOn = false
+local bombThrowConnection = nil
+local bombPlatform = nil
+local heightFixTimer = nil
+
+BombThrowBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        local character = LocalPlayer.Character
+        
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            isBombThrowOn = not isBombThrowOn
+            
+            if isBombThrowOn then
+                -- 開啟模式：固定高度5570並創建平台
+                BombThrowBtn.Text = "💥 丟炸彈時用 (ON)"
+                BombThrowBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
+                
+                -- 創建平台
+                bombPlatform = Instance.new("Part")
+                bombPlatform.Name = "BombPlatform"
+                bombPlatform.Size = Vector3.new(5000, 5, 5000)
+                bombPlatform.Material = Enum.Material.Plastic
+                bombPlatform.BrickColor = BrickColor.new("Medium stone grey")
+                bombPlatform.Anchored = true
+                bombPlatform.CanCollide = true
+                
+                -- 設定平台位置在高度5570-7.5的位置
+                local playerPosition = character.HumanoidRootPart.Position
+                bombPlatform.Position = Vector3.new(playerPosition.X, 5570 - 7.5, playerPosition.Z)
+                bombPlatform.Parent = Workspace
+                
+                -- 將玩家傳送到高度5570
+                local currentPos = character.HumanoidRootPart.Position
+                character.HumanoidRootPart.CFrame = CFrame.new(
+                    Vector3.new(currentPos.X, 5570, currentPos.Z),
+                    character.HumanoidRootPart.CFrame.LookVector
+                )
+                
+                -- 記錄開始時間和固定狀態
+                local startTime = tick()
+                local isHeightFixed = true
+                
+                -- 創建連接來處理高度固定和平台跟隨
+                bombThrowConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                    if character and character:FindFirstChild("HumanoidRootPart") and character.Parent then
+                        local currentTime = tick()
+                        local currentPosition = character.HumanoidRootPart.Position
+                        
+                        -- 前0.5秒固定玩家高度在5570
+                        if isHeightFixed and (currentTime - startTime) < 0.5 then
+                            if math.abs(currentPosition.Y - 5570) > 0.1 then
+                                character.HumanoidRootPart.CFrame = CFrame.new(
+                                    Vector3.new(currentPosition.X, 5570, currentPosition.Z),
+                                    character.HumanoidRootPart.CFrame.LookVector
+                                )
+                            end
+                        elseif isHeightFixed and (currentTime - startTime) >= 0.5 then
+                            -- 0.5秒後解除高度固定，將玩家移動到平台上
+                            isHeightFixed = false
+                            if bombPlatform and bombPlatform.Parent then
+                                local platformTop = bombPlatform.Position.Y + (bombPlatform.Size.Y / 2) + 3
+                                character.HumanoidRootPart.CFrame = CFrame.new(
+                                    Vector3.new(currentPosition.X, platformTop, currentPosition.Z),
+                                    character.HumanoidRootPart.CFrame.LookVector
+                                )
+                            end
+                        end
+                        
+                        -- 平台始終跟隨玩家XZ位置
+                        if bombPlatform and bombPlatform.Parent then
+                            local expectedPlatformPos = Vector3.new(currentPosition.X, 5570 - 7.5, currentPosition.Z)
+                            if (bombPlatform.Position - expectedPlatformPos).Magnitude > 0.1 then
+                                bombPlatform.Position = expectedPlatformPos
+                            end
+                        end
+                    end
+                end)
+                
+            else
+                -- 關閉模式
+                BombThrowBtn.Text = "💥 丟炸彈時用"
+                BombThrowBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+                
+                -- 斷開高度固定連接
+                if bombThrowConnection then
+                    bombThrowConnection:Disconnect()
+                    bombThrowConnection = nil
+                end
+                
+                -- 移除平台
+                if bombPlatform and bombPlatform.Parent then
+                    bombPlatform:Destroy()
+                    bombPlatform = nil
+                end
+            end
+        end
+    end)
+end)
 game.Players.PlayerRemoving:Connect(function(player)
-    if player == LocalPlayer and platformConnection then
-        platformConnection:Disconnect()
-        platformConnection = nil
+    if player == LocalPlayer then
+        if autoBombConnection then
+            autoBombConnection:Disconnect()
+            autoBombConnection = nil
+        end
     end
 end)
 
 LocalPlayer.CharacterRemoving:Connect(function()
-    if platformConnection then
-        platformConnection:Disconnect()
-        platformConnection = nil
+    if autoBombConnection then
+        autoBombConnection:Disconnect()
+        autoBombConnection = nil
     end
     -- 重置状态变量
-    isBombModeOn = false
-    originalPlatformY = nil
-    originalPlayerY = nil
-    BombModeBtn.Text = "💣 丟炸彈時用"
-    BombModeBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+    isAutoBombOn = false
+    AutoBombBtn.Text = "💣 自動拿/放炸彈"
+    AutoBombBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
 end)
 
 
@@ -558,6 +710,13 @@ local function showContent(content)
         currentContent.Visible = false
     end
     content.Visible = true
+    currentContent = content
+end
+
+-- 邪惡巴西按鈕點擊事件
+EvilBrazilButton.MouseButton1Click:Connect(function()
+    showContent(EvilBrazilContent)
+end)
     currentContent = content
 end
 
