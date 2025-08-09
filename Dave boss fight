@@ -717,10 +717,3 @@ end
 EvilBrazilButton.MouseButton1Click:Connect(function()
     showContent(EvilBrazilContent)
 end)
-    currentContent = content
-end
-
--- 邪惡巴西按鈕點擊事件
-EvilBrazilButton.MouseButton1Click:Connect(function()
-    showContent(EvilBrazilContent)
-end)
