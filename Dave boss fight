@@ -4,31 +4,6 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local TeleportService = game:GetService("TeleportService")
 
--- 自動Loopfb（燈光控制）
-local function autoLoopfb()
-    spawn(function()
-        while wait(0.1) do
-            pcall(function()
-                local character = LocalPlayer.Character
-                if character then
-                    local lantern = character:FindFirstChild("Lantern")
-                    if lantern then
-                        local network = lantern:FindFirstChild("Network")
-                        if network then
-                            local args = {
-                                [1] = "Fb"
-                            }
-                            network:FireServer(unpack(args))
-                        end
-                    end
-                end
-            end)
-        end
-    end)
-end
-
--- 啟動自動Loopfb
-autoLoopfb()
 
 -- GUI 主體
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
