@@ -347,7 +347,7 @@ SkipFirstLevelBtn.MouseButton1Click:Connect(function()
 end)
 
 -- 3. 解電梯
-local UnlockElevatorBtn = createButton("🛗 解電梯", 3, EvilBrazilContent, 45)
+local UnlockElevatorBtn = createButton("解電梯(好像沒用)", 3, EvilBrazilContent, 45)
 UnlockElevatorBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
