@@ -564,7 +564,7 @@ TeleportToEndBtn.MouseButton1Click:Connect(function()
                 end
             end
             
-            -- 持續固定玩家速度為50和跳躍力為75
+            -- 持續固定玩家速度為55和跳躍力85
             local humanoid = character.Humanoid
             
             -- 創建連接來持續監控並固定數值
@@ -572,20 +572,20 @@ TeleportToEndBtn.MouseButton1Click:Connect(function()
             local jumpConnection
             
             speedConnection = humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-                if humanoid.WalkSpeed ~= 50 then
-                    humanoid.WalkSpeed = 50
+                if humanoid.WalkSpeed ~= 55 then
+                    humanoid.WalkSpeed = 55
                 end
             end)
             
             jumpConnection = humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
-                if humanoid.JumpPower ~= 75 then
-                    humanoid.JumpPower = 75
+                if humanoid.JumpPower ~= 85 then
+                    humanoid.JumpPower = 85
                 end
             end)
             
             -- 初始設定
-            humanoid.WalkSpeed = 50
-            humanoid.JumpPower = 75
+            humanoid.WalkSpeed = 55
+            humanoid.JumpPower = 85
             
             -- 當角色重生時清理連接
             humanoid.Died:Connect(function()
