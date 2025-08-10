@@ -327,20 +327,8 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
-            -- 第一步：傳送到Stepladder並執行ProximityPrompt
-            local stepladder = Workspace:FindFirstChild("Stepladder")
-            if stepladder then
-                character.HumanoidRootPart.CFrame = stepladder.CFrame
-                local frame = stepladder:FindFirstChild("Frame")
-                if frame then
-                    local proximityPrompt = frame:FindFirstChild("ProximityPrompt")
-                    if proximityPrompt then
-                        fireproximityprompt(proximityPrompt)
-                    end
-                end
-            end
             
-            -- 第二步：傳送到Screwdriver並執行ProximityPrompt
+            -- 第一步：傳送到Screwdriver並執行ProximityPrompt
             local screwdriver = Workspace:FindFirstChild("Screwdriver")
             if screwdriver then
                 character.HumanoidRootPart.CFrame = screwdriver.CFrame
@@ -350,7 +338,7 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
                 end
             end
             
-            -- 第三步：傳送到ElevatorHatch並執行ProximityPrompt
+            -- 第二步：傳送到ElevatorHatch並執行ProximityPrompt
             local openableDoors = Workspace:FindFirstChild("OpenableDoors")
             if openableDoors then
                 local elevatorHatch = openableDoors:FindFirstChild("ElevatorHatch")
@@ -366,7 +354,7 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
                 end
             end
             
-            -- 第四步：點擊boltClick
+            -- 第三步：點擊boltClick
             local clickable = Workspace:FindFirstChild("Clickable")
             if clickable then
                 local boltClick = clickable:FindFirstChild("boltClick")
