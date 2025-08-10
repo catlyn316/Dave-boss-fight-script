@@ -708,7 +708,7 @@ AutoBombBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 7. 丟炸彈時用（可開關）- 固定高度5秒後移動到平台
+-- 7. 丟炸彈時用（可開關）- 固定高度0.5秒後移動到平台
 local BombThrowBtn = createButton("💥 丟炸彈時用", 7, EvilBrazilContent, 45)
 local isBombThrowOn = false
 local bombThrowConnection = nil
