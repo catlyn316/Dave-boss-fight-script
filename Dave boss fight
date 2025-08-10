@@ -381,20 +381,9 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
-            -- 第一步：傳送到Stepladder並執行ProximityPrompt
-            local stepladder = Workspace:FindFirstChild("Stepladder")
-            if stepladder then
-                character.HumanoidRootPart.CFrame = stepladder.CFrame
-                local frame = stepladder:FindFirstChild("Frame")
-                if frame then
-                    local proximityPrompt = frame:FindFirstChild("ProximityPrompt")
-                    if proximityPrompt then
-                        fireproximityprompt(proximityPrompt)
-                    end
-                end
-            end
+
             
-            -- 第二步：傳送到Screwdriver並執行ProximityPrompt
+            -- 第一步：傳送到Screwdriver並執行ProximityPrompt
             local screwdriver = Workspace:FindFirstChild("Screwdriver")
             if screwdriver then
                 character.HumanoidRootPart.CFrame = screwdriver.CFrame
@@ -404,7 +393,7 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
                 end
             end
             
-            -- 第三步：傳送到ElevatorHatch並執行ProximityPrompt
+            -- 第二步：傳送到ElevatorHatch並執行ProximityPrompt
             local openableDoors = Workspace:FindFirstChild("OpenableDoors")
             if openableDoors then
                 local elevatorHatch = openableDoors:FindFirstChild("ElevatorHatch")
@@ -420,7 +409,7 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
                 end
             end
             
-            -- 第四步：點擊boltClick
+            -- 第三步：點擊boltClick
             local clickable = Workspace:FindFirstChild("Clickable")
             if clickable then
                 local boltClick = clickable:FindFirstChild("boltClick")
@@ -465,15 +454,15 @@ ExtendGloveBtn.MouseButton1Click:Connect(function()
                                 if grip then
                                     -- 嘗試多種可能的屬性名稱
                                     if grip:FindFirstChild("Position") then
-                                        grip.Position.Y = -8
+                                        grip.Position.Y = -12
                                     elseif grip.Position then
                                         local pos = grip.Position
-                                        grip.Position = Vector3.new(pos.X, -8, pos.Z)
+                                        grip.Position = Vector3.new(pos.X, -12, pos.Z)
                                     end
                                     
                                     -- 嘗試直接修改Y屬性
                                     if grip:FindFirstChild("Y") then
-                                        grip.Y = -8
+                                        grip.Y = -12
                                     end
                                 end
                             end
@@ -481,7 +470,7 @@ ExtendGloveBtn.MouseButton1Click:Connect(function()
                             -- 如果是Tool對象，嘗試修改GripPos
                             if lantern:IsA("Tool") then
                                 local currentGrip = lantern.GripPos
-                                lantern.GripPos = Vector3.new(currentGrip.X, -8, currentGrip.Z)
+                                lantern.GripPos = Vector3.new(currentGrip.X, -12, currentGrip.Z)
                             end
                             
                             -- 嘗試查找Handle並修改其屬性
@@ -490,7 +479,7 @@ ExtendGloveBtn.MouseButton1Click:Connect(function()
                                 -- 修改Handle的相關屬性
                                 if handle:FindFirstChild("Position") then
                                     local pos = handle.Position
-                                    handle.Position = Vector3.new(pos.X, pos.Y - 8, pos.Z)
+                                    handle.Position = Vector3.new(pos.X, pos.Y - 12, pos.Z)
                                 end
                             end
                         end
@@ -543,7 +532,7 @@ ExtendGloveBtn.MouseButton1Click:Connect(function()
                                 -- 修改Handle的相關屬性
                                 if handle:FindFirstChild("Position") then
                                     local pos = handle.Position
-                                    handle.Position = Vector3.new(pos.X, pos.Y + 6.9, pos.Z) -- 從-8回到-1.1，差距為6.9
+                                    handle.Position = Vector3.new(pos.X, pos.Y + 10.9, pos.Z) -- 從-12回到-1.1，差距為10.9
                                 end
                             end
                         end
