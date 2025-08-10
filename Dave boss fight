@@ -285,7 +285,7 @@ contentLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
 -- 邪惡巴西功能按鈕
 -- 1. 傳送到Boss戰
-local TeleportToBossBtn = createButton("💀 傳送到Boss戰", 1, EvilBrazilContent, 45)
+local TeleportToBossBtn = createButton("💀 傳送到邪惡巴西", 1, EvilBrazilContent, 45)
 TeleportToBossBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
