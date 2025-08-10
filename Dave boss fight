@@ -381,17 +381,48 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 4. 傳送到骰子 (新增的按鈕)
-local TeleportToDiceBtn = createButton("🎲 傳送到骰子(出來電梯後點)", 4, EvilBrazilContent, 45)
-TeleportToDiceBtn.MouseButton1Click:Connect(function()
+-- 4. 延長手套功能（修改後的按鈕）
+local ExtendGloveBtn = createButton("🧤 延長手套", 4, EvilBrazilContent, 45)
+local isExtendGloveOn = false
+local extendGloveConnection = nil
+
+ExtendGloveBtn.MouseButton1Click:Connect(function()
     pcall(function()
-        local character = LocalPlayer.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            local cursedDice = Workspace:FindFirstChild("Cursed Dice")
-            if cursedDice then
-                character.HumanoidRootPart.CFrame = cursedDice.CFrame
-            else
-                print("找不到 Cursed Dice 物件")
+        isExtendGloveOn = not isExtendGloveOn
+        
+        if isExtendGloveOn then
+            -- 開啟延長手套模式
+            ExtendGloveBtn.Text = "🧤 延長手套 (ON)"
+            ExtendGloveBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
+            
+            -- 創建連接來持續檢測和修改Lantern位置
+            extendGloveConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                -- 尋找workspace.Characters.meowkithelper.Lantern
+                local characters = Workspace:FindFirstChild("Characters")
+                if characters then
+                    local meowkithelper = characters:FindFirstChild("meowkithelper")
+                    if meowkithelper then
+                        local lantern = meowkithelper:FindFirstChild("Lantern")
+                        if lantern and lantern:IsA("BasePart") then
+                            -- 將Lantern的Y位置設為-8
+                            local currentPos = lantern.Position
+                            if currentPos.Y ~= -8 then
+                                lantern.Position = Vector3.new(currentPos.X, -8, currentPos.Z)
+                            end
+                        end
+                    end
+                end
+            end)
+            
+        else
+            -- 關閉延長手套模式
+            ExtendGloveBtn.Text = "🧤 延長手套"
+            ExtendGloveBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+            
+            -- 斷開連接
+            if extendGloveConnection then
+                extendGloveConnection:Disconnect()
+                extendGloveConnection = nil
             end
         end
     end)
