@@ -381,55 +381,8 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 4. 延長手套功能（修改後的按鈕）
-local ExtendGloveBtn = createButton("🧤 延長手套", 4, EvilBrazilContent, 45)
-local isExtendGloveOn = false
-local extendGloveConnection = nil
-
-ExtendGloveBtn.MouseButton1Click:Connect(function()
-    pcall(function()
-        isExtendGloveOn = not isExtendGloveOn
-        
-        if isExtendGloveOn then
-            -- 開啟延長手套模式
-            ExtendGloveBtn.Text = "🧤 延長手套 (ON)"
-            ExtendGloveBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
-            
-            -- 創建連接來持續檢測和修改Lantern位置
-            extendGloveConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                -- 尋找workspace.Characters.meowkithelper.Lantern
-                local characters = Workspace:FindFirstChild("Characters")
-                if characters then
-                    local meowkithelper = characters:FindFirstChild("meowkithelper")
-                    if meowkithelper then
-                        local lantern = meowkithelper:FindFirstChild("Lantern")
-                        if lantern and lantern:IsA("BasePart") then
-                            -- 將Lantern的Y位置設為-8
-                            local currentPos = lantern.Position
-                            if currentPos.Y ~= -8 then
-                                lantern.Position = Vector3.new(currentPos.X, -8, currentPos.Z)
-                            end
-                        end
-                    end
-                end
-            end)
-            
-        else
-            -- 關閉延長手套模式
-            ExtendGloveBtn.Text = "🧤 延長手套"
-            ExtendGloveBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-            
-            -- 斷開連接
-            if extendGloveConnection then
-                extendGloveConnection:Disconnect()
-                extendGloveConnection = nil
-            end
-        end
-    end)
-end)
-
--- 5. 傳送到終點
-local TeleportToEndBtn = createButton("🎯 傳送到終點", 5, EvilBrazilContent, 45)
+-- 4. 傳送到終點
+local TeleportToEndBtn = createButton("🎯 傳送到終點", 4, EvilBrazilContent, 45)
 TeleportToEndBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
@@ -494,8 +447,8 @@ TeleportToEndBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 6. 自動拿/放炸彈（可開關）- 自動觸發ProximityPrompt
-local AutoBombBtn = createButton("💣 自動拿/放炸彈", 6, EvilBrazilContent, 45)
+-- 5. 自動拿/放炸彈（可開關）- 自動觸發ProximityPrompt
+local AutoBombBtn = createButton("💣 自動拿/放炸彈", 5, EvilBrazilContent, 45)
 local isAutoBombOn = false
 local autoBombConnection = nil
 
@@ -587,8 +540,8 @@ AutoBombBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 7. 丟炸彈時用（可開關）- 固定高度5秒後移動到平台
-local BombThrowBtn = createButton("💥 丟炸彈時用", 7, EvilBrazilContent, 45)
+-- 6. 丟炸彈時用（可開關）- 固定高度5秒後移動到平台
+local BombThrowBtn = createButton("💥 丟炸彈時用", 6, EvilBrazilContent, 45)
 local isBombThrowOn = false
 local bombThrowConnection = nil
 local bombPlatform = nil
@@ -687,6 +640,7 @@ BombThrowBtn.MouseButton1Click:Connect(function()
         end
     end)
 end)
+
 game.Players.PlayerRemoving:Connect(function(player)
     if player == LocalPlayer then
         if autoBombConnection then
