@@ -1,15 +1,22 @@
 -- 基本服務與玩家
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
-local TeleportService = game:GetService("TeleportService")
 
+-- =============================================
+-- PlaceId 偵測
+-- =============================================
+local currentPlaceId = game.PlaceId
+local IS_EVIL_BRAZIL = (currentPlaceId == 80420091630966)
+local IS_SLAP_BATTLE = (currentPlaceId == 7234087065)
 
 -- GUI 主體
 local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
 ScreenGui.Name = "MaolingHub"
 
--- 修正：主框架樣式
+-- 主框架
 local Frame = Instance.new("Frame", ScreenGui)
 Frame.Size = UDim2.new(0, 450, 0, 350)
 Frame.Position = UDim2.new(0.5, -225, 0.5, -175)
@@ -18,7 +25,6 @@ Frame.BorderSizePixel = 0
 Frame.Active = true
 Frame.Draggable = true
 
--- 添加漸層效果
 local gradient = Instance.new("UIGradient", Frame)
 gradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
@@ -26,7 +32,6 @@ gradient.Color = ColorSequence.new{
 }
 gradient.Rotation = 45
 
--- 添加外發光效果
 local stroke = Instance.new("UIStroke", Frame)
 stroke.Color = Color3.fromRGB(100, 150, 255)
 stroke.Thickness = 2
@@ -34,10 +39,10 @@ stroke.Transparency = 0.5
 
 Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 15)
 
--- 修正：標題樣式
+-- 標題
 local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1, -80, 0, 50)
-Title.Position = UDim2.new(0, 15, 0, 0)  -- 往上移動5像素原為5
+Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "✨ 貓玲的腳本區 ✨"
 Title.Font = Enum.Font.GothamBold
@@ -45,13 +50,12 @@ Title.TextSize = 22
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- 添加標題發光效果
 local titleStroke = Instance.new("UIStroke", Title)
 titleStroke.Color = Color3.fromRGB(100, 150, 255)
 titleStroke.Thickness = 1
 titleStroke.Transparency = 0.3
 
--- 修正：關閉按鈕樣式和功能
+-- 關閉按鈕
 local Close = Instance.new("TextButton", Frame)
 Close.Size = UDim2.new(0, 35, 0, 35)
 Close.Position = UDim2.new(1, -40, 0, 8)
@@ -62,40 +66,14 @@ Close.Font = Enum.Font.GothamBold
 Close.TextSize = 18
 Close.BorderSizePixel = 0
 
--- 添加關閉按鈕效果
 local closeGradient = Instance.new("UIGradient", Close)
 closeGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(220, 60, 60)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 40, 40))
 }
-
 Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 8)
 
--- 當腳本GUI關閉時也清理PointLight連接
-Close.MouseButton1Click:Connect(function()
-    -- 清理所有連接
-    if autoBombConnection then
-        autoBombConnection:Disconnect()
-        autoBombConnection = nil
-    end
-    if extendGloveConnection then
-        extendGloveConnection:Disconnect()
-        extendGloveConnection = nil
-    end
-    if bombThrowConnection then
-        bombThrowConnection:Disconnect()
-        bombThrowConnection = nil
-    end
-    if pointLightConnection then
-        pointLightConnection:Disconnect()
-        pointLightConnection = nil
-    end
-    
-    ScreenGui:Destroy()
-    _G.maolingHubLoaded = false -- 重置載入狀態
-end)
-
--- 修正：最小化按鈕樣式
+-- 最小化按鈕
 local Minimize = Instance.new("TextButton", Frame)
 Minimize.Size = UDim2.new(0, 35, 0, 35)
 Minimize.Position = UDim2.new(1, -80, 0, 8)
@@ -111,10 +89,9 @@ minimizeGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 100, 120)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 100))
 }
-
 Instance.new("UICorner", Minimize).CornerRadius = UDim.new(0, 8)
 
--- 修正：側邊欄為可滾動
+-- 側邊欄
 local SideBar = Instance.new("ScrollingFrame", Frame)
 SideBar.Size = UDim2.new(0, 130, 1, -55)
 SideBar.Position = UDim2.new(0, 5, 0, 50)
@@ -125,21 +102,18 @@ SideBar.CanvasSize = UDim2.new(0, 0, 0, 200)
 SideBar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 SideBar.ScrollingDirection = Enum.ScrollingDirection.Y
 
--- 添加側邊欄樣式
 local sidebarGradient = Instance.new("UIGradient", SideBar)
 sidebarGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 50)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(45, 45, 65))
 }
-
 Instance.new("UICorner", SideBar).CornerRadius = UDim.new(0, 10)
 
--- 添加UIListLayout到側邊欄
 local sidebarLayout = Instance.new("UIListLayout", SideBar)
 sidebarLayout.Padding = UDim.new(0, 8)
 sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- 修正：內容區域
+-- 內容區域
 local Content = Instance.new("Frame", Frame)
 Content.Size = UDim2.new(1, -145, 1, -55)
 Content.Position = UDim2.new(0, 140, 0, 50)
@@ -151,10 +125,9 @@ contentGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 60)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 75))
 }
-
 Instance.new("UICorner", Content).CornerRadius = UDim.new(0, 10)
 
--- 修正：縮小功能的尺寸
+-- 縮小功能
 local isMinimized = false
 local fullSize = UDim2.new(0, 450, 0, 350)
 local miniSize = UDim2.new(0, 450, 0, 50)
@@ -166,101 +139,78 @@ Minimize.MouseButton1Click:Connect(function()
     Frame.Size = isMinimized and miniSize or fullSize
 end)
 
--- 修正：簡單高亮文字的分區按鈕樣式
-local function createSectionButton(text, order, parent)
+-- =============================================
+-- 按鈕建立函數
+-- =============================================
+local function createSectionButton(text, parent)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0, 120, 0, 45)
     btn.Text = text
-    btn.BackgroundColor3 = Color3.fromRGB(85, 85, 105)  -- 比原本更亮的背景
-    
-    -- 最亮的文字設定
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- 純白色
-    btn.TextTransparency = 0  -- 完全不透明
-    btn.Font = Enum.Font.GothamBold  -- 粗體字
-    btn.TextSize = 16  -- 適中大小
+    btn.BackgroundColor3 = Color3.fromRGB(85, 85, 105)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextTransparency = 0
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 16
     btn.BorderSizePixel = 0
-    
-    -- 添加圓角
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-    
-    -- 簡化描邊
     local btnStroke = Instance.new("UIStroke", btn)
     btnStroke.Color = Color3.fromRGB(150, 180, 255)
     btnStroke.Thickness = 1
     btnStroke.Transparency = 0.6
-    
-    -- 簡單hover效果
     btn.MouseEnter:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(105, 105, 125)  -- hover時更亮
+        btn.BackgroundColor3 = Color3.fromRGB(105, 105, 125)
         btnStroke.Transparency = 0.3
     end)
-    
     btn.MouseLeave:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(85, 85, 105)
         btnStroke.Transparency = 0.6
     end)
-    
     return btn
 end
 
--- 修正：簡單高亮文字的一般按鈕樣式
 local function createButton(text, order, parent, spacing)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0, 180, 0, 35)
     btn.Position = UDim2.new(0.5, -90, 0, 10 + (order - 1) * spacing)
     btn.Text = text
-    btn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)  -- 比原本更亮的背景
-    
-    -- 最亮的文字設定
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- 純白色
-    btn.TextSize = 16  -- 適中大小
-    btn.Font = Enum.Font.GothamBold  -- 粗體字
+    btn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 16
+    btn.Font = Enum.Font.GothamBold
     btn.BorderSizePixel = 0
-    
-    -- 添加圓角
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-    
-    -- 簡化描邊
     local btnStroke = Instance.new("UIStroke", btn)
     btnStroke.Color = Color3.fromRGB(120, 170, 255)
     btnStroke.Thickness = 1
     btnStroke.Transparency = 0.6
-    
-    -- 簡單hover效果
     btn.MouseEnter:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(100, 160, 240)  -- hover時更亮
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- 保持純白
+        btn.BackgroundColor3 = Color3.fromRGB(100, 160, 240)
         btnStroke.Transparency = 0.3
     end)
-    
     btn.MouseLeave:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- 保持純白
         btnStroke.Transparency = 0.6
     end)
-    
     return btn
 end
 
--- 添加滾動框樣式改善
 local function styleScrollFrame(scrollFrame)
     scrollFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
     scrollFrame.BorderSizePixel = 0
     scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 150, 255)
-    
     local scrollGradient = Instance.new("UIGradient", scrollFrame)
     scrollGradient.Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 45, 65)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 55, 80))
     }
-    
     Instance.new("UICorner", scrollFrame).CornerRadius = UDim.new(0, 8)
 end
 
--- 當腳本開啟後，持續偵測並調整PointLight
+-- =============================================
+-- PointLight 調整（全 PlaceId 通用）
+-- =============================================
 local pointLightConnection = nil
 
--- 調整PointLight的函數
 local function adjustPointLight()
     pcall(function()
         local characters = Workspace:FindFirstChild("Characters")
@@ -275,7 +225,6 @@ local function adjustPointLight()
                         if fire then
                             local pointLight = fire:FindFirstChild("PointLight")
                             if pointLight and pointLight:IsA("PointLight") then
-                                -- 設置PointLight屬性
                                 pointLight.Brightness = 5
                                 pointLight.Range = 60
                                 pointLight.Shadows = false
@@ -288,15 +237,15 @@ local function adjustPointLight()
     end)
 end
 
--- 開始持續偵測PointLight
-pointLightConnection = game:GetService("RunService").Heartbeat:Connect(function()
+pointLightConnection = RunService.Heartbeat:Connect(function()
     adjustPointLight()
 end)
 
+-- =============================================
 -- 邪惡巴西分區
-local EvilBrazilButton = createSectionButton("🇧🇷 邪惡巴西", 1, SideBar)
+-- =============================================
+local EvilBrazilButton = createSectionButton("🇧🇷 邪惡巴西", SideBar)
 
--- 邪惡巴西內容框架
 local EvilBrazilContent = Instance.new("ScrollingFrame", Content)
 EvilBrazilContent.Size = UDim2.new(1, -10, 1, -10)
 EvilBrazilContent.Position = UDim2.new(0, 5, 0, 5)
@@ -306,15 +255,18 @@ EvilBrazilContent.ScrollBarThickness = 6
 EvilBrazilContent.Visible = true
 styleScrollFrame(EvilBrazilContent)
 
--- 添加內容區域布局
 local contentLayout = Instance.new("UIListLayout", EvilBrazilContent)
 contentLayout.Padding = UDim.new(0, 10)
 contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 contentLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
--- 邪惡巴西功能按鈕
--- 1. 傳送到Boss戰
+-- =============================================
+-- 所有按鈕建立
+-- =============================================
+
+-- 1. 傳送到邪惡巴西（Slap Battle 用）
 local TeleportToBossBtn = createButton("💀 傳送到邪惡巴西", 1, EvilBrazilContent, 45)
+TeleportToBossBtn.Visible = false
 TeleportToBossBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
@@ -335,29 +287,21 @@ end)
 
 -- 2. 跳過第一關
 local SkipFirstLevelBtn = createButton("⚡ 跳過第一關", 2, EvilBrazilContent, 45)
+SkipFirstLevelBtn.Visible = false
 SkipFirstLevelBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
-            -- 第一步：傳送到Spotlight
             local spotlight = Workspace:FindFirstChild("Spotlight")
             if spotlight then
                 character.HumanoidRootPart.CFrame = spotlight.CFrame
-                
-                -- 等待0.5秒
                 wait(0.5)
-                
-                -- 第二步：傳送到GateMechanism.Touchpad
                 local gateMechanism = Workspace:FindFirstChild("GateMechanism")
                 if gateMechanism then
                     local touchpad = gateMechanism:FindFirstChild("Touchpad")
                     if touchpad then
                         character.HumanoidRootPart.CFrame = touchpad.CFrame
-                        
-                        -- 等待2秒
                         wait(2)
-                        
-                        -- 第三步：傳送到TheOutside.TowerENT1.teleport
                         local theOutside = Workspace:FindFirstChild("TheOutside")
                         if theOutside then
                             local towerENT1 = theOutside:FindFirstChild("TowerENT1")
@@ -377,13 +321,11 @@ end)
 
 -- 3. 解電梯
 local UnlockElevatorBtn = createButton("解電梯(好像沒用)", 3, EvilBrazilContent, 45)
+UnlockElevatorBtn.Visible = false
 UnlockElevatorBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
-
-            
-            -- 第一步：傳送到Screwdriver並執行ProximityPrompt
             local screwdriver = Workspace:FindFirstChild("Screwdriver")
             if screwdriver then
                 character.HumanoidRootPart.CFrame = screwdriver.CFrame
@@ -392,8 +334,6 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
                     fireproximityprompt(proximityPrompt)
                 end
             end
-            
-            -- 第二步：傳送到ElevatorHatch並執行ProximityPrompt
             local openableDoors = Workspace:FindFirstChild("OpenableDoors")
             if openableDoors then
                 local elevatorHatch = openableDoors:FindFirstChild("ElevatorHatch")
@@ -408,8 +348,6 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
                     end
                 end
             end
-            
-            -- 第三步：點擊boltClick
             local clickable = Workspace:FindFirstChild("Clickable")
             if clickable then
                 local boltClick = clickable:FindFirstChild("boltClick")
@@ -424,123 +362,49 @@ UnlockElevatorBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 4. 延長手套 (修改後的按鈕)
+-- 4. 延長手套
 local ExtendGloveBtn = createButton("🧤 延長手套", 4, EvilBrazilContent, 45)
+ExtendGloveBtn.Visible = false
 local isExtendGloveOn = false
 local extendGloveConnection = nil
 
 ExtendGloveBtn.MouseButton1Click:Connect(function()
     pcall(function()
         isExtendGloveOn = not isExtendGloveOn
-        
         if isExtendGloveOn then
-            -- 開啟模式：開始監控並修改Lantern位置
             ExtendGloveBtn.Text = "🧤 延長手套 (ON)"
             ExtendGloveBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
-            
-            -- 每0.1秒檢查一次
-            extendGloveConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                -- 查找 workspace.Characters.[玩家名稱].Lantern
+            extendGloveConnection = RunService.Heartbeat:Connect(function()
                 local characters = Workspace:FindFirstChild("Characters")
                 if characters then
                     local playerCharacter = characters:FindFirstChild(LocalPlayer.Name)
                     if playerCharacter then
                         local lantern = playerCharacter:FindFirstChild("Lantern")
                         if lantern then
-                            -- 嘗試不同的可能路徑
-                            local transform = lantern:FindFirstChild("Transform")
-                            if transform then
-                                local grip = transform:FindFirstChild("Grip")
-                                if grip then
-                                    -- 嘗試多種可能的屬性名稱
-                                    if grip:FindFirstChild("Position") then
-                                        grip.Position.Y = -12
-                                    elseif grip.Position then
-                                        local pos = grip.Position
-                                        grip.Position = Vector3.new(pos.X, -12, pos.Z)
-                                    end
-                                    
-                                    -- 嘗試直接修改Y屬性
-                                    if grip:FindFirstChild("Y") then
-                                        grip.Y = -12
-                                    end
-                                end
-                            end
-                            
-                            -- 如果是Tool對象，嘗試修改GripPos
                             if lantern:IsA("Tool") then
                                 local currentGrip = lantern.GripPos
                                 lantern.GripPos = Vector3.new(currentGrip.X, -12, currentGrip.Z)
-                            end
-                            
-                            -- 嘗試查找Handle並修改其屬性
-                            local handle = lantern:FindFirstChild("Handle")
-                            if handle then
-                                -- 修改Handle的相關屬性
-                                if handle:FindFirstChild("Position") then
-                                    local pos = handle.Position
-                                    handle.Position = Vector3.new(pos.X, pos.Y - 12, pos.Z)
-                                end
                             end
                         end
                     end
                 end
             end)
-            
         else
-            -- 關閉模式 - 將Y值改回-1.1
             ExtendGloveBtn.Text = "🧤 延長手套"
             ExtendGloveBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-            
-            -- 在斷開連接前，先將Y值改回-1.1
             pcall(function()
                 local characters = Workspace:FindFirstChild("Characters")
                 if characters then
                     local playerCharacter = characters:FindFirstChild(LocalPlayer.Name)
                     if playerCharacter then
                         local lantern = playerCharacter:FindFirstChild("Lantern")
-                        if lantern then
-                            -- 嘗試不同的可能路徑，將Y值改回-1.1
-                            local transform = lantern:FindFirstChild("Transform")
-                            if transform then
-                                local grip = transform:FindFirstChild("Grip")
-                                if grip then
-                                    -- 嘗試多種可能的屬性名稱
-                                    if grip:FindFirstChild("Position") then
-                                        grip.Position.Y = -1.1
-                                    elseif grip.Position then
-                                        local pos = grip.Position
-                                        grip.Position = Vector3.new(pos.X, -1.1, pos.Z)
-                                    end
-                                    
-                                    -- 嘗試直接修改Y屬性
-                                    if grip:FindFirstChild("Y") then
-                                        grip.Y = -1.1
-                                    end
-                                end
-                            end
-                            
-                            -- 如果是Tool對象，嘗試修改GripPos
-                            if lantern:IsA("Tool") then
-                                local currentGrip = lantern.GripPos
-                                lantern.GripPos = Vector3.new(currentGrip.X, -1.1, currentGrip.Z)
-                            end
-                            
-                            -- 嘗試查找Handle並修改其屬性
-                            local handle = lantern:FindFirstChild("Handle")
-                            if handle then
-                                -- 修改Handle的相關屬性
-                                if handle:FindFirstChild("Position") then
-                                    local pos = handle.Position
-                                    handle.Position = Vector3.new(pos.X, pos.Y + 10.9, pos.Z) -- 從-12回到-1.1，差距為10.9
-                                end
-                            end
+                        if lantern and lantern:IsA("Tool") then
+                            local currentGrip = lantern.GripPos
+                            lantern.GripPos = Vector3.new(currentGrip.X, -1.1, currentGrip.Z)
                         end
                     end
                 end
             end)
-            
-            -- 斷開監控連接
             if extendGloveConnection then
                 extendGloveConnection:Disconnect()
                 extendGloveConnection = nil
@@ -551,11 +415,11 @@ end)
 
 -- 5. 傳送到終點
 local TeleportToEndBtn = createButton("🎯 傳送到終點", 5, EvilBrazilContent, 45)
+TeleportToEndBtn.Visible = false
 TeleportToEndBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
-            -- 傳送到終點的第5個子物件
             local diceCatch = Workspace:FindFirstChild("DiceCatch")
             if diceCatch then
                 local children = diceCatch:GetChildren()
@@ -563,37 +427,11 @@ TeleportToEndBtn.MouseButton1Click:Connect(function()
                     character.HumanoidRootPart.CFrame = children[5].CFrame
                 end
             end
-            
-            -- 持續固定玩家速度為55和跳躍力85
             local humanoid = character.Humanoid
-            
-            -- 創建連接來持續監控並固定數值
-            local speedConnection
-            local jumpConnection
-            
-            speedConnection = humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-                if humanoid.WalkSpeed ~= 55 then
-                    humanoid.WalkSpeed = 55
-                end
-            end)
-            
-            jumpConnection = humanoid:GetPropertyChangedSignal("JumpPower"):Connect(function()
-                if humanoid.JumpPower ~= 85 then
-                    humanoid.JumpPower = 85
-                end
-            end)
-            
-            -- 初始設定
             humanoid.WalkSpeed = 55
             humanoid.JumpPower = 85
-            
-            -- 當角色重生時清理連接
             humanoid.Died:Connect(function()
-                if speedConnection then speedConnection:Disconnect() end
-                if jumpConnection then jumpConnection:Disconnect() end
             end)
-            
-            -- 在腳下創建平台
             local platform = Instance.new("Part")
             platform.Name = "EndPlatform"
             platform.Size = Vector3.new(5000, 5, 5000)
@@ -601,75 +439,48 @@ TeleportToEndBtn.MouseButton1Click:Connect(function()
             platform.BrickColor = BrickColor.new("Medium stone grey")
             platform.Anchored = true
             platform.CanCollide = true
-            
-            -- 設定平台位置在玩家腳下
             local playerPosition = character.HumanoidRootPart.Position
             local originalY = playerPosition.Y - 7.5
             platform.Position = Vector3.new(playerPosition.X, originalY, playerPosition.Z)
-            
-            -- 儲存原始Y位置供後續使用
             platform:SetAttribute("OriginalY", originalY)
-            
             platform.Parent = Workspace
         end
     end)
 end)
 
--- 6. 自動拿/放炸彈（可開關）- 自動觸發ProximityPrompt
+-- 6. 自動拿/放炸彈
 local AutoBombBtn = createButton("💣 自動拿/放炸彈", 6, EvilBrazilContent, 45)
+AutoBombBtn.Visible = false
 local isAutoBombOn = false
 local autoBombConnection = nil
 
--- 獲取玩家攝像機
-local Camera = game.Workspace.CurrentCamera
-
--- 自動觸發可見ProximityPrompt的函數
 local function autoTriggerProximityPrompts()
     pcall(function()
         local character = LocalPlayer.Character
-        if not character or not character:FindFirstChild("HumanoidRootPart") then
-            return
-        end
-        
-        -- 遞歸查找所有ProximityPrompt
+        if not character or not character:FindFirstChild("HumanoidRootPart") then return end
         local function findProximityPrompts(obj)
             local prompts = {}
-            
             for _, child in pairs(obj:GetChildren()) do
                 if child:IsA("ProximityPrompt") then
                     table.insert(prompts, child)
                 end
-                
-                -- 遞歸查找子物件
                 local childPrompts = findProximityPrompts(child)
                 for _, prompt in pairs(childPrompts) do
                     table.insert(prompts, prompt)
                 end
             end
-            
             return prompts
         end
-        
-        -- 獲取所有ProximityPrompt
         local allPrompts = findProximityPrompts(Workspace)
-        
         for _, prompt in pairs(allPrompts) do
-            -- 檢查ProximityPrompt是否啟用且父物件存在
             if prompt.Enabled and prompt.Parent then
                 local promptPart = prompt.Parent
-                
-                -- 檢查是否在範圍內
                 if promptPart:IsA("BasePart") then
                     local distance = (character.HumanoidRootPart.Position - promptPart.Position).Magnitude
-                    
-                    -- 如果在觸發範圍內，自動觸發
                     if distance <= prompt.MaxActivationDistance then
-                        -- 檢查是否在視角範圍內（簡單的前方檢測）
                         local directionToPrompt = (promptPart.Position - character.HumanoidRootPart.Position).Unit
                         local lookDirection = character.HumanoidRootPart.CFrame.LookVector
                         local dotProduct = directionToPrompt:Dot(lookDirection)
-                        
-                        -- 如果大致在前方（角度小於90度）
                         if dotProduct > 0 then
                             fireproximityprompt(prompt)
                         end
@@ -683,23 +494,15 @@ end
 AutoBombBtn.MouseButton1Click:Connect(function()
     pcall(function()
         isAutoBombOn = not isAutoBombOn
-        
         if isAutoBombOn then
-            -- 開啟模式：開始自動觸發ProximityPrompt
             AutoBombBtn.Text = "💣 自動拿/放炸彈 (ON)"
             AutoBombBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
-            
-            -- 每0.1秒檢查一次
-            autoBombConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            autoBombConnection = RunService.Heartbeat:Connect(function()
                 autoTriggerProximityPrompts()
             end)
-            
         else
-            -- 關閉模式
             AutoBombBtn.Text = "💣 自動拿/放炸彈"
             AutoBombBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-            
-            -- 斷開自動觸發連接
             if autoBombConnection then
                 autoBombConnection:Disconnect()
                 autoBombConnection = nil
@@ -708,26 +511,21 @@ AutoBombBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 7. 丟炸彈時用（可開關）- 固定高度0.5秒後移動到平台
+-- 7. 丟炸彈時用
 local BombThrowBtn = createButton("💥 丟炸彈時用", 7, EvilBrazilContent, 45)
+BombThrowBtn.Visible = false
 local isBombThrowOn = false
 local bombThrowConnection = nil
 local bombPlatform = nil
-local heightFixTimer = nil
 
 BombThrowBtn.MouseButton1Click:Connect(function()
     pcall(function()
         local character = LocalPlayer.Character
-        
         if character and character:FindFirstChild("HumanoidRootPart") then
             isBombThrowOn = not isBombThrowOn
-            
             if isBombThrowOn then
-                -- 開啟模式：固定高度5570並創建平台
                 BombThrowBtn.Text = "💥 丟炸彈時用 (ON)"
                 BombThrowBtn.BackgroundColor3 = Color3.fromRGB(60, 180, 60)
-                
-                -- 創建平台
                 bombPlatform = Instance.new("Part")
                 bombPlatform.Name = "BombPlatform"
                 bombPlatform.Size = Vector3.new(5000, 5, 5000)
@@ -735,30 +533,20 @@ BombThrowBtn.MouseButton1Click:Connect(function()
                 bombPlatform.BrickColor = BrickColor.new("Medium stone grey")
                 bombPlatform.Anchored = true
                 bombPlatform.CanCollide = true
-                
-                -- 設定平台位置在高度5570-7.5的位置
                 local playerPosition = character.HumanoidRootPart.Position
                 bombPlatform.Position = Vector3.new(playerPosition.X, 5570 - 7.5, playerPosition.Z)
                 bombPlatform.Parent = Workspace
-                
-                -- 將玩家傳送到高度5570
                 local currentPos = character.HumanoidRootPart.Position
                 character.HumanoidRootPart.CFrame = CFrame.new(
                     Vector3.new(currentPos.X, 5570, currentPos.Z),
                     character.HumanoidRootPart.CFrame.LookVector
                 )
-                
-                -- 記錄開始時間和固定狀態
                 local startTime = tick()
                 local isHeightFixed = true
-                
-                -- 創建連接來處理高度固定和平台跟隨
-                bombThrowConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                bombThrowConnection = RunService.Heartbeat:Connect(function()
                     if character and character:FindFirstChild("HumanoidRootPart") and character.Parent then
                         local currentTime = tick()
                         local currentPosition = character.HumanoidRootPart.Position
-                        
-                        -- 前0.5秒固定玩家高度在5570
                         if isHeightFixed and (currentTime - startTime) < 0.5 then
                             if math.abs(currentPosition.Y - 5570) > 0.1 then
                                 character.HumanoidRootPart.CFrame = CFrame.new(
@@ -767,7 +555,6 @@ BombThrowBtn.MouseButton1Click:Connect(function()
                                 )
                             end
                         elseif isHeightFixed and (currentTime - startTime) >= 0.5 then
-                            -- 0.5秒後解除高度固定，將玩家移動到平台上
                             isHeightFixed = false
                             if bombPlatform and bombPlatform.Parent then
                                 local platformTop = bombPlatform.Position.Y + (bombPlatform.Size.Y / 2) + 3
@@ -777,8 +564,6 @@ BombThrowBtn.MouseButton1Click:Connect(function()
                                 )
                             end
                         end
-                        
-                        -- 平台始終跟隨玩家XZ位置
                         if bombPlatform and bombPlatform.Parent then
                             local expectedPlatformPos = Vector3.new(currentPosition.X, 5570 - 7.5, currentPosition.Z)
                             if (bombPlatform.Position - expectedPlatformPos).Magnitude > 0.1 then
@@ -787,19 +572,13 @@ BombThrowBtn.MouseButton1Click:Connect(function()
                         end
                     end
                 end)
-                
             else
-                -- 關閉模式
                 BombThrowBtn.Text = "💥 丟炸彈時用"
                 BombThrowBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-                
-                -- 斷開高度固定連接
                 if bombThrowConnection then
                     bombThrowConnection:Disconnect()
                     bombThrowConnection = nil
                 end
-                
-                -- 移除平台
                 if bombPlatform and bombPlatform.Parent then
                     bombPlatform:Destroy()
                     bombPlatform = nil
@@ -809,82 +588,130 @@ BombThrowBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- 當玩家離開遊戲時清理所有連接
+-- =============================================
+-- PlaceId 控制：決定顯示哪些按鈕
+-- =============================================
+if IS_EVIL_BRAZIL then
+    -- Evil Brazil 遊戲本體：顯示除傳送到邪惡巴西以外所有按鈕
+    TeleportToBossBtn.Visible = false
+    SkipFirstLevelBtn.Visible = true
+    UnlockElevatorBtn.Visible = true
+    ExtendGloveBtn.Visible = true
+    TeleportToEndBtn.Visible = true
+    AutoBombBtn.Visible = true
+    BombThrowBtn.Visible = true
+
+    -- LoopFullBright + NoFog
+    RunService.Heartbeat:Connect(function()
+        pcall(function()
+            for _, v in pairs(Lighting:GetChildren()) do
+                if v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") or
+                   v:IsA("SunRaysEffect") or v:IsA("BloomEffect") then
+                    v.Enabled = false
+                end
+            end
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.FogStart = 100000
+            Lighting.GlobalShadows = false
+            Lighting.Ambient = Color3.fromRGB(178, 178, 178)
+            Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
+        end)
+    end)
+
+    -- 自動持續維持速度55、跳躍85
+    RunService.Heartbeat:Connect(function()
+        pcall(function()
+            local character = LocalPlayer.Character
+            if character then
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    if humanoid.WalkSpeed ~= 55 then humanoid.WalkSpeed = 55 end
+                    if humanoid.JumpPower ~= 85 then humanoid.JumpPower = 85 end
+                end
+            end
+        end)
+    end)
+
+elseif IS_SLAP_BATTLE then
+    -- Slap Battle：只顯示傳送到邪惡巴西
+    TeleportToBossBtn.Visible = true
+
+else
+    -- 其他遊戲：全隱藏，顯示提示
+    local hintLabel = Instance.new("TextLabel", EvilBrazilContent)
+    hintLabel.Size = UDim2.new(0, 250, 0, 80)
+    hintLabel.BackgroundTransparency = 1
+    hintLabel.Text = "⚠️ 先用傳送區的\n傳送到巴西！"
+    hintLabel.TextColor3 = Color3.fromRGB(255, 220, 80)
+    hintLabel.Font = Enum.Font.GothamBold
+    hintLabel.TextSize = 20
+    hintLabel.TextWrapped = true
+    hintLabel.TextXAlignment = Enum.TextXAlignment.Center
+end
+
+-- =============================================
+-- 關閉按鈕清理
+-- =============================================
+Close.MouseButton1Click:Connect(function()
+    if autoBombConnection then autoBombConnection:Disconnect(); autoBombConnection = nil end
+    if extendGloveConnection then extendGloveConnection:Disconnect(); extendGloveConnection = nil end
+    if bombThrowConnection then bombThrowConnection:Disconnect(); bombThrowConnection = nil end
+    if pointLightConnection then pointLightConnection:Disconnect(); pointLightConnection = nil end
+    ScreenGui:Destroy()
+    _G.maolingHubLoaded = false
+end)
+
+-- =============================================
+-- 玩家離開清理
+-- =============================================
 game.Players.PlayerRemoving:Connect(function(player)
     if player == LocalPlayer then
-        if autoBombConnection then
-            autoBombConnection:Disconnect()
-            autoBombConnection = nil
-        end
-        if extendGloveConnection then
-            extendGloveConnection:Disconnect()
-            extendGloveConnection = nil
-        end
-        if bombThrowConnection then
-            bombThrowConnection:Disconnect()
-            bombThrowConnection = nil
-        end
-        if pointLightConnection then
-            pointLightConnection:Disconnect()
-            pointLightConnection = nil
-        end
+        if autoBombConnection then autoBombConnection:Disconnect() end
+        if extendGloveConnection then extendGloveConnection:Disconnect() end
+        if bombThrowConnection then bombThrowConnection:Disconnect() end
+        if pointLightConnection then pointLightConnection:Disconnect() end
     end
 end)
 
--- 當角色重生時重置所有狀態
+-- =============================================
+-- 角色重生清理
+-- =============================================
 LocalPlayer.CharacterRemoving:Connect(function()
-    -- 清理自動拿放炸彈連接
-    if autoBombConnection then
-        autoBombConnection:Disconnect()
-        autoBombConnection = nil
-    end
+    if autoBombConnection then autoBombConnection:Disconnect(); autoBombConnection = nil end
     isAutoBombOn = false
     AutoBombBtn.Text = "💣 自動拿/放炸彈"
     AutoBombBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-    
-    -- 清理延長手套連接
-    if extendGloveConnection then
-        extendGloveConnection:Disconnect()
-        extendGloveConnection = nil
-    end
+
+    if extendGloveConnection then extendGloveConnection:Disconnect(); extendGloveConnection = nil end
     isExtendGloveOn = false
     ExtendGloveBtn.Text = "🧤 延長手套"
     ExtendGloveBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-    
-    -- 清理丟炸彈連接和平台
-    if bombThrowConnection then
-        bombThrowConnection:Disconnect()
-        bombThrowConnection = nil
-    end
-    if bombPlatform and bombPlatform.Parent then
-        bombPlatform:Destroy()
-        bombPlatform = nil
-    end
+
+    if bombThrowConnection then bombThrowConnection:Disconnect(); bombThrowConnection = nil end
+    if bombPlatform and bombPlatform.Parent then bombPlatform:Destroy(); bombPlatform = nil end
     isBombThrowOn = false
     BombThrowBtn.Text = "💥 丟炸彈時用"
     BombThrowBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 220)
-    
-    -- 重新開始PointLight偵測（因為新角色可能會有新的Lantern）
-    if pointLightConnection then
-        pointLightConnection:Disconnect()
-    end
-    pointLightConnection = game:GetService("RunService").Heartbeat:Connect(function()
+
+    if pointLightConnection then pointLightConnection:Disconnect() end
+    pointLightConnection = RunService.Heartbeat:Connect(function()
         adjustPointLight()
     end)
 end)
 
+-- =============================================
 -- 分區切換功能
-local currentContent = nil
+-- =============================================
+local currentContent = EvilBrazilContent
 
 local function showContent(content)
-    if currentContent then
-        currentContent.Visible = false
-    end
+    if currentContent then currentContent.Visible = false end
     content.Visible = true
     currentContent = content
 end
 
--- 邪惡巴西按鈕點擊事件
 EvilBrazilButton.MouseButton1Click:Connect(function()
     showContent(EvilBrazilContent)
 end)
