@@ -601,22 +601,60 @@ if IS_EVIL_BRAZIL then
     AutoBombBtn.Visible = true
     BombThrowBtn.Visible = true
 
-    -- LoopFullBright + NoFog
+    -- LoopFullBright + NoFog（完整版，對齊全能控制器邏輯）
+    local atmosphereBackups = {}
+    
+    -- 先備份所有 Atmosphere
+    for _, v in pairs(Lighting:GetDescendants()) do
+        if v:IsA("Atmosphere") and not atmosphereBackups[v] then
+            atmosphereBackups[v] = {
+                Density = v.Density,
+                Offset = v.Offset,
+                Color = v.Color,
+                Decay = v.Decay,
+                Glare = v.Glare,
+                Haze = v.Haze
+            }
+        end
+    end
+
     RunService.Heartbeat:Connect(function()
         pcall(function()
+            -- 停用後製效果
             for _, v in pairs(Lighting:GetChildren()) do
                 if v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") or
-                   v:IsA("SunRaysEffect") or v:IsA("BloomEffect") then
+                   v:IsA("SunRaysEffect") or v:IsA("BloomEffect") or
+                   v:IsA("DepthOfFieldEffect") then
                     v.Enabled = false
                 end
+                -- Atmosphere 調參數而非 Enabled = false
+                if v:IsA("Atmosphere") then
+                    v.Density = 0
+                    v.Offset = 0
+                    v.Glare = 0
+                    v.Haze = 0
+                end
             end
-            Lighting.Brightness = 2
-            Lighting.ClockTime = 14
+            -- 也掃 GetDescendants 以防 Atmosphere 在子層
+            for _, v in pairs(Lighting:GetDescendants()) do
+                if v:IsA("Atmosphere") then
+                    v.Density = 0
+                    v.Offset = 0
+                    v.Glare = 0
+                    v.Haze = 0
+                end
+            end
+            -- 舊版霧屬性
             Lighting.FogEnd = 100000
             Lighting.FogStart = 100000
+            -- 亮度
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
             Lighting.GlobalShadows = false
             Lighting.Ambient = Color3.fromRGB(178, 178, 178)
             Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
+            Lighting.EnvironmentDiffuseScale = 1
+            Lighting.EnvironmentSpecularScale = 1
         end)
     end)
 
