@@ -277,6 +277,10 @@ TeleportToBossBtn.MouseButton1Click:Connect(function()
                 if targetPortal then
                     targetPortal = targetPortal:FindFirstChild("portal")
                     if targetPortal then
+                        -- 排好腳本，傳送後自動執行
+                        if queueonteleport then
+                            queueonteleport([[loadstring(game:HttpGet("https://raw.githubusercontent.com/catlyn316/Dave-boss-fight-script/refs/heads/main/Dave%20boss%20fight"))()]])
+                        end
                         character.HumanoidRootPart.CFrame = targetPortal.CFrame
                     end
                 end
